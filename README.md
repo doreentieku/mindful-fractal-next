@@ -2,6 +2,9 @@
 
 A next.js single-page mindfulness meditation app with evolving fractal visuals synced to breathing phases, soft chimes, and session tracking.
 
+## Demo
+[click here](www.google.com)
+
 ## Run locally
 
 ```bash
@@ -12,7 +15,7 @@ npm install
 npm run dev
 
 # 3) Open in your browser
-# http://localhost:3000/meditate
+# http://localhost:3000
 ```
 
 ### Notes

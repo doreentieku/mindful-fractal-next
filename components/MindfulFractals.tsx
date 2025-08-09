@@ -9,7 +9,8 @@ const PRESETS = {
   'Calm 5-5-5-0': { inhale: 5, hold1: 5, exhale: 5, hold2: 0 },
 } as const;
 
-type PresetKey = keyof typeof PRESETS;
+type BuiltinPresetKey = keyof typeof PRESETS;
+type PresetKey = BuiltinPresetKey | 'Custom';
 type Phase = 'Inhale' | 'Hold' | 'Exhale' | 'Hold2';
 type BreathingPlan = { inhale: number; hold1: number; exhale: number; hold2: number };
 
@@ -17,7 +18,7 @@ const DEFAULT_SESSION_MIN = 10;
 
 export default function MindfulFractals() {
   const [presetKey, setPresetKey] = useState<PresetKey>('Box 4-4-4-4');
-  const [plan, setPlan] = useState<BreathingPlan>(PRESETS[presetKey]);
+  const [plan, setPlan] = useState<BreathingPlan>(PRESETS['Box 4-4-4-4']);
   const [customPlan, setCustomPlan] = useState<BreathingPlan>({ inhale: 4, hold1: 4, exhale: 4, hold2: 4 });
   const [pattern, setPattern] = useState<'Tree' | 'Spiro'>('Tree');
   const [sessionMinutes, setSessionMinutes] = useState<number>(DEFAULT_SESSION_MIN);
@@ -33,7 +34,6 @@ export default function MindfulFractals() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  // Audio
   const audioCtxRef = useRef<AudioContext | null>(null);
   const ambientNodeRef = useRef<AudioBufferSourceNode | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
@@ -109,7 +109,6 @@ export default function MindfulFractals() {
 
   const currentPhase = phases[phaseIndex % Math.max(1, phases.length)];
 
-  // Timer + phase logic
   useEffect(() => {
     if (!isRunning) return;
     let last = performance.now();
@@ -138,13 +137,14 @@ export default function MindfulFractals() {
 
     rafRef.current = requestAnimationFrame(tick);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, phaseIndex, phases]);
 
   const timeLeftRef = useRef(timeLeft);
   useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
 
-  useEffect(() => { if (presetKey !== 'Custom') setPlan(PRESETS[presetKey]); }, [presetKey]);
+  useEffect(() => {
+    if (presetKey !== 'Custom') setPlan(PRESETS[presetKey as BuiltinPresetKey]);
+  }, [presetKey]);
 
   useEffect(() => {
     if (!isRunning && timeLeft === 0) {
@@ -166,7 +166,6 @@ export default function MindfulFractals() {
   };
   const stopSession = () => setIsRunning(false);
 
-  // Canvas render
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -267,7 +266,6 @@ export default function MindfulFractals() {
     return () => { cancelAnimationFrame(handle); window.removeEventListener('resize', onResize); };
   }, [pattern, currentPhase, phaseElapsed]);
 
-  // Keyboard shortcut
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
@@ -283,12 +281,13 @@ export default function MindfulFractals() {
   const progress = 1 - timeLeft / totalSessionSecs;
   const phasePct = currentPhase.secs ? Math.min(1, phaseElapsed / currentPhase.secs) : 1;
 
+  const PRESET_OPTIONS: PresetKey[] = ['Box 4-4-4-4', '4-7-8', 'Calm 5-5-5-0', 'Custom'];
   return (
     <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col">
       <header className="px-6 py-4 flex items-center justify-between border-b border-white/10 backdrop-blur">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-indigo-500/20 grid place-items-center">
-            <svg viewBox="0 0 24 24" className="w-5 h-5"><path fill="currentColor" d="M12 2a1 1 0 0 1 1 1v3.1c3.9.5 7 3.8 7 7.9A8 8 0 1 1 5 10a1 1 0 1 1 2 0 6 6 0 1 0 6 6 6 6 0 0 0-6-6 1 1 0 1 1 0-2c2.8 0 5.2 1.5 6.5 3.7V3a1 1 0 0 1 1-1Z"/></svg>
+            <svg viewBox="0 0 24 24" className="w-5 h-5"><path fill="currentColor" d="M12 2a1 1 0 0 1 1 1v3.1c3.9.5 7 3.8 7 7.9A8 8 0 1 1 5 10a1 1 0 1 1 2 0 6 6 0 1 0 6 6 6 6 0 0 0-6-6 1 1 0 1 1 0-2c2.8 0 5.2 1.5 6.5 3.7V3a1 1 0 0 1 1-1Z" /></svg>
           </div>
           <div>
             <h1 className="text-xl font-semibold tracking-tight">Mindful Fractals</h1>
@@ -343,10 +342,10 @@ export default function MindfulFractals() {
 
             {presetKey === 'Custom' && (
               <div className="grid grid-cols-4 gap-2 text-xs">
-                {(['inhale','hold1','exhale','hold2'] as const).map((key) => (
+                {(['inhale', 'hold1', 'exhale', 'hold2'] as const).map((key) => (
                   <div key={key} className="space-y-1">
                     <label className="block text-slate-400 capitalize">{key}</label>
-                    <input type="number" min={0} max={20} value={customPlan[key] as number} onChange={(e) => setCustomPlan({ ...customPlan, [key]: Math.max(0, Math.min(20, Number(e.target.value) || 0)) })} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 focus:outline-none"/>
+                    <input type="number" min={0} max={20} value={customPlan[key] as number} onChange={(e) => setCustomPlan({ ...customPlan, [key]: Math.max(0, Math.min(20, Number(e.target.value) || 0)) })} className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 focus:outline-none" />
                   </div>
                 ))}
                 <button onClick={() => setPlan(customPlan)} className="col-span-4 mt-2 px-3 py-2 rounded-lg text-sm border border-white/10 hover:bg-white/10">Apply</button>
@@ -357,7 +356,7 @@ export default function MindfulFractals() {
           <section className="space-y-3">
             <h2 className="font-semibold text-sm tracking-wide text-slate-300">Pattern</h2>
             <div className="flex gap-2">
-              {['Tree','Spiro'].map((p) => (
+              {['Tree', 'Spiro'].map((p) => (
                 <button key={p} onClick={() => setPattern(p as any)} className={`px-3 py-2 rounded-lg text-sm border border-white/10 hover:bg-white/10 ${pattern === p ? 'bg-cyan-500/20 border-cyan-500/40' : ''}`}>{p}</button>
               ))}
             </div>
@@ -467,7 +466,7 @@ function BreathingRing({ phase, pct }: { phase: Phase; pct: number }) {
         <div className="text-center">
           <div className="uppercase text-[10px] tracking-[0.2em] text-white/70">{phase === 'Hold2' ? 'Hold' : phase}</div>
           <AnimatePresence mode="wait">
-            <motion.div key={phase + Math.round(pct*20)} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="text-5xl font-bold tabular-nums">
+            <motion.div key={phase + Math.round(pct * 20)} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="text-5xl font-bold tabular-nums">
               {Math.max(0, Math.ceil((1 - pct) * 8))}
             </motion.div>
           </AnimatePresence>
