@@ -3,7 +3,7 @@
 A next.js single-page mindfulness meditation app with evolving fractal visuals synced to breathing phases, soft chimes, and session tracking.
 
 ## Demo
-[click here](www.google.com)
+[Check it out here](https://mindful-fractual.vercel.app/)
 
 ## Run locally
 
