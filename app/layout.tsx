@@ -2,7 +2,7 @@ import './globals.css';
 
 export const metadata = {
   title: 'Mindful Fractals',
-  description: 'Calming fractal meditation with guided breathing.',
+  description: 'Calming fractal meditation app with guided breathing.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
